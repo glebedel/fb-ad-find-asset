@@ -16,28 +16,21 @@ const AdCreativeLink = adsSdk.AdCreativeLinkData;
 class AdCreator extends React.Component {
   constructor(props) {
     super(props);
-    if (props.campaigns && props.campaigns.length) {
-      this.state = {
-        campaignIndex: 0,
-        campaign: this.props.campaigns[0]
-      };
-    } else {
-      this.state = {};
-    }
+    this.state = {};
   }
-  handleSelectCampaign = (ev, index, campaignIndex) => {
+  handleSelectCampaign = campaignIndex => {
     this.setState({
       campaignIndex,
       campaign: this.props.campaigns[campaignIndex]
     });
   };
-  handleSelectAdset = (ev, index, adsetIndex) => {
+  handleSelectAdset = adsetIndex => {
     this.setState({
       adsetIndex,
       adset: this.state.campaign.adsets[adsetIndex]
     });
   };
-  handleSelectActor = (ev, index, actorIndex) => {
+  handleSelectActor = actorIndex => {
     this.setState({
       actorIndex,
       actor: this.props.pages[actorIndex]
@@ -115,7 +108,17 @@ class AdCreator extends React.Component {
     });
     return this.setState({ createStatus: 0 });
   };
-
+  componentDidUpdate() {
+    if (this.state.campaignIndex === undefined && this.props.campaigns && this.props.campaigns.length) {
+      this.handleSelectCampaign(0);
+    }
+    if (this.state.actorIndex === undefined && this.props.pages && this.props.pages.length){
+      this.handleSelectActor(0);
+    }
+    if (this.state.adsetIndex === undefined && this.state.campaign && this.state.campaign.adsets.length){
+      this.handleSelectAdset(0);
+    }
+  }
   render() {
     console.log(this.state);
     const campaignChoices =
@@ -141,18 +144,12 @@ class AdCreator extends React.Component {
           <h2>Create ad</h2>
           <SelectField
             required={true}
-            floatingLabelText="Page"
-            value={this.state.actorIndex}
-            onChange={this.handleSelectActor}
-          >
-            {pagesChoices}
-          </SelectField>
-          <SelectField
-            required={true}
             floatingLabelText="Campaign"
             disabled={!this.props.campaigns || !this.props.campaigns.length}
             value={this.state.campaignIndex}
-            onChange={this.handleSelectCampaign}
+            onChange={(ev, index, campaignIndex) =>
+              this.handleSelectCampaign(campaignIndex)
+            }
           >
             {campaignChoices}
           </SelectField>
@@ -163,10 +160,23 @@ class AdCreator extends React.Component {
               !this.state.campaign || !this.state.campaign.adsets.length
             }
             value={this.state.adsetIndex}
-            onChange={this.handleSelectAdset}
+            onChange={(ev, index, adsetIndex) =>
+              this.handleSelectAdset(adsetIndex)
+            }
           >
             {adsetChoices}
           </SelectField>
+          <SelectField
+            required={true}
+            floatingLabelText="Page"
+            value={this.state.actorIndex}
+            onChange={(ev, index, actorIndex) =>
+              this.handleSelectActor(actorIndex)
+            }
+          >
+            {pagesChoices}
+          </SelectField>
+
           <TextField
             required={true}
             id="creator-ad-name"
@@ -190,7 +200,6 @@ class AdCreator extends React.Component {
               this.handleCreativeChange({ title: ev.target.value })
             }
           />
-          <br />
           <TextField
             required={true}
             id="creator-ad-body"
@@ -199,7 +208,6 @@ class AdCreator extends React.Component {
               this.handleCreativeChange({ body: ev.target.value })
             }
           />
-          <br />
           <TextField
             required={true}
             id="creator-ad-url"
@@ -211,7 +219,6 @@ class AdCreator extends React.Component {
               })
             }
           />
-          <br />
           <RaisedButton
             label="Create Ad"
             type="submit"

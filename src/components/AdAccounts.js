@@ -31,6 +31,9 @@ class AdAccounts extends React.Component {
               p.perms.includes("CREATE_ADS")
             )
           });
+          if (this.state.accounts && this.state.accounts.length) {
+            this.handleAccountSelect(this.state.accounts[0]);
+          }
         } else {
           this.setState({ error: response.error });
         }
@@ -82,7 +85,7 @@ class AdAccounts extends React.Component {
       ));
     return (
       <div>
-        <h2> adaccount list</h2>
+        <p>Choose an ad account:</p>
         {accounts}
       </div>
     );
