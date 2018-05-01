@@ -1,11 +1,14 @@
 import React from "react";
-
 import TextField from "material-ui/TextField";
 import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import RaisedButton from "material-ui/RaisedButton";
+import FlatButton from "material-ui/FlatButton";
 import FontIcon from "material-ui/FontIcon";
 import Card from "material-ui/Card";
+import CircularProgress from "material-ui/CircularProgress";
+import Dialog from "material-ui/Dialog";
+import Divider from "material-ui/Divider";
 
 const adsSdk = require("facebook-nodejs-ads-sdk");
 const Ad = adsSdk.Ad;
@@ -13,6 +16,11 @@ const AdCreative = adsSdk.AdCreative;
 const AdStory = adsSdk.AdCreativeObjectStorySpec;
 const AdCreativeLink = adsSdk.AdCreativeLinkData;
 
+const styles = {
+  img: {
+    maxHeight: 100
+  }
+};
 class AdCreator extends React.Component {
   constructor(props) {
     super(props);
@@ -45,9 +53,11 @@ class AdCreator extends React.Component {
     const creative = this.state.creative || {};
     this.setState({ creative: { ...creative, ...change } });
   };
-  handleStorySpecChange = change => {
-    const storySpec = this.state.story || {};
-    this.setState({ story: { ...storySpec, ...change } });
+  handleStoryLinkData = (change = {}) => {
+    const storyLinkData = this.state.linkData || {};
+    this.setState({
+      linkData: { ...storyLinkData, ...change }
+    });
   };
   loadImageData = url => {
     fetch(url)
@@ -88,39 +98,64 @@ class AdCreator extends React.Component {
             ...this.state.creative,
             [AdCreative.Fields.actor_id]: this.state.actor.id,
             [AdCreative.Fields.object_story_spec]: {
-              ...this.state.story,
               [AdStory.Fields.page_id]: this.state.actor.id,
               [AdStory.Fields.link_data]: {
-                ...this.state.story.link_data,
+                ...this.state.linkData,
                 [AdCreativeLink.Fields.call_to_action]: {
                   type: "LEARN_MORE"
                 },
-                [AdCreativeLink.Fields.attachment_style]: "link"
+                [AdCreativeLink.Fields.attachment_style]: "link",
+                [AdCreative.Fields.image_hash]: image && image.hash
               }
             },
-            [AdCreative.Fields.image_hash]: image && image.hash
+            [AdCreative.Fields.image_hash]: image && image.hash,
+            [AdCreative.Fields.image_url]: image && image.url
           },
           [Ad.Fields.adset_id]: this.state.adset.id,
           [Ad.Fields.name]: this.state.name,
           [Ad.Fields.status]: Ad.Status.paused
         })
-        .then(result => console.info("ad created: ", result));
+        .then(result => {
+          console.info("ad created: ", result);
+          if (result.id) {
+            return this.setState({ createStatus: 2 });
+          }
+        })
+        .catch(err => {
+          this.setState({ createStatus: -1, error: err });
+        });
     });
-    return this.setState({ createStatus: 0 });
+    return this.setState({ createStatus: 1 });
+  };
+  handleDialogClose = () => {
+    this.setState({
+      createStatus: 0
+    });
   };
   componentDidUpdate() {
-    if (this.state.campaignIndex === undefined && this.props.campaigns && this.props.campaigns.length) {
+    if (
+      this.state.campaignIndex === undefined &&
+      this.props.campaigns &&
+      this.props.campaigns.length
+    ) {
       this.handleSelectCampaign(0);
     }
-    if (this.state.actorIndex === undefined && this.props.pages && this.props.pages.length){
+    if (
+      this.state.actorIndex === undefined &&
+      this.props.pages &&
+      this.props.pages.length
+    ) {
       this.handleSelectActor(0);
     }
-    if (this.state.adsetIndex === undefined && this.state.campaign && this.state.campaign.adsets.length){
+    if (
+      this.state.adsetIndex === undefined &&
+      this.state.campaign &&
+      this.state.campaign.adsets.length
+    ) {
       this.handleSelectAdset(0);
     }
   }
   render() {
-    console.log(this.state);
     const campaignChoices =
       this.props.campaigns &&
       this.props.campaigns.map((c, i) => (
@@ -136,6 +171,26 @@ class AdCreator extends React.Component {
       ));
     return (
       <Card>
+        <Dialog
+          title={this.state.createStatus === 2 ? "Success" : "Error"}
+          actions={[
+            <FlatButton
+              label="Close"
+              primary={true}
+              keyboardFocused={true}
+              onClick={this.handleDialogClose}
+            />
+          ]}
+          modal={false}
+          open={this.state.createStatus === -1 || this.state.createStatus === 2}
+          onRequestClose={this.handleDialogClose}
+        >
+          {this.state.createStatus === 2 &&
+            "Ad '" + this.state.name + "' was created successfully"}
+          {this.state.createStatus === -1 &&
+            "Error was encountered while trying to create an ad: " +
+              this.state.error.name}
+        </Dialog>
         <form
           action="/postad"
           onSubmit={this.handleCreativeSubmit}
@@ -176,13 +231,14 @@ class AdCreator extends React.Component {
           >
             {pagesChoices}
           </SelectField>
-
+          <Divider />
           <TextField
             required={true}
             id="creator-ad-name"
             hintText="Ad Name"
             onChange={this.handleNameChange}
           />
+          <Divider />
           <TextField
             type="url"
             id="creator-ad-image"
@@ -190,41 +246,50 @@ class AdCreator extends React.Component {
             onBlur={this.handleImageChange}
           />
           {this.state.imageDataUrl && (
-            <img src={this.state.imageDataUrl} alt="ad asset" />
+            <img
+              src={this.state.imageDataUrl}
+              style={styles.img}
+              alt="ad asset"
+            />
           )}
+          <Divider />
           <TextField
-            required={true}
-            id="creator-ad-title"
-            hintText="Creative Title"
-            onChange={ev =>
-              this.handleCreativeChange({ title: ev.target.value })
-            }
+            id="creator-ad-headline"
+            hintText="Creative Headline"
+            onChange={ev => {
+              this.handleCreativeChange({ title: ev.target.value });
+              this.handleStoryLinkData({ name: ev.target.value });
+            }}
           />
+          <Divider />
           <TextField
-            required={true}
             id="creator-ad-body"
             hintText="Creative Body"
-            onChange={ev =>
-              this.handleCreativeChange({ body: ev.target.value })
-            }
+            onChange={ev => {
+              this.handleCreativeChange({ body: ev.target.value });
+              this.handleStoryLinkData({ description: ev.target.value });
+            }}
           />
+          <Divider />
           <TextField
             required={true}
             id="creator-ad-url"
             type="url"
             hintText="Link url"
-            onChange={ev =>
-              this.handleStorySpecChange({
-                link_data: { link: ev.target.value }
-              })
-            }
+            onChange={ev => {
+              this.handleCreativeChange({ link: ev.target.value });
+              this.handleStoryLinkData({ link: ev.target.value });
+            }}
           />
-          <RaisedButton
-            label="Create Ad"
-            type="submit"
-            secondary={true}
-            icon={<FontIcon className="muidocs-icon-custom-github" />}
-          />
+          <Divider />
+          {(this.state.createStatus === 1 && <CircularProgress />) || (
+            <RaisedButton
+              label="Create Ad"
+              type="submit"
+              secondary={true}
+              icon={<FontIcon className="muidocs-icon-custom-github" />}
+            />
+          )}
         </form>
       </Card>
     );

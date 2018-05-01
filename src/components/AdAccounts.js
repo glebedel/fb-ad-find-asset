@@ -1,5 +1,5 @@
 import React from "react";
-import RaisedButton from "material-ui/RaisedButton";
+import RaisedButton from 'material-ui/RaisedButton';
 import AdAccountInfo from "./AdAccountInfo";
 
 const adsSdk = require("facebook-nodejs-ads-sdk");
@@ -14,7 +14,6 @@ class AdAccounts extends React.Component {
   }
 
   fetchAccounts() {
-    console.log("fetch adaccounts");
     window.FB.api(
       "/me",
       "GET",
@@ -85,7 +84,7 @@ class AdAccounts extends React.Component {
       ));
     return (
       <div>
-        <p>Choose an ad account:</p>
+        {accounts && accounts.length > 1 && <p>Choose an ad account:</p>}
         {accounts}
       </div>
     );
