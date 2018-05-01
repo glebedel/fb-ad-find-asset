@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import logo from "./logo.svg";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import FB_CONFIG from "./configs/Facebook";
+import FacebookBtn from "./components/FacebookBtn";
 import AdAccounts from "./components/AdAccounts";
 import "./App.css";
 
@@ -86,10 +87,7 @@ class App extends Component {
     const msg = this.state.profile ? (
       <div>Welcome {this.state.profile.name}!</div>
     ) : (
-      <div>
-        Please <button onClick={this.handleClick}>Login with facebook</button>{" "}
-        to our app
-      </div>
+      <FacebookBtn clickHandler={this.handleClick} />
     );
     return (
       <MuiThemeProvider>

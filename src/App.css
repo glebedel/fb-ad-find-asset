@@ -22,7 +22,40 @@
   font-size: large;
 }
 
+.facebook-button {
+  position: relative;
+  cursor: pointer;
+  font-size: 16px;
+  height: 40px;
+  width: 250px;
+  font-family: Helvetica, Arial, sans-serif;
+  border: none;
+  letter-spacing: .25px;
+  text-align: center;
+  text-overflow: ellipsis;
+  color: #fff;
+  background-color: #3b5998;
+  border-color: rgba(0, 0, 0, 0.2);
+  margin-top: 5px;
+  border-radius: 5px;
+  padding: 0px;
+}
+
+.facebook-text {
+  padding: 10px 12px;
+}
+
+.facebook-button svg {
+  width: 24px;
+  margin: 8px;
+  float: left;
+}
+
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

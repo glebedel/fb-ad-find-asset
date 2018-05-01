@@ -1,5 +1,6 @@
 import React from "react";
 import RaisedButton from 'material-ui/RaisedButton';
+import Divider from 'material-ui/Divider';
 import AdAccountInfo from "./AdAccountInfo";
 
 const adsSdk = require("facebook-nodejs-ads-sdk");
@@ -84,8 +85,10 @@ class AdAccounts extends React.Component {
       ));
     return (
       <div>
+      <h3>Ad Accounts</h3>
         {accounts && accounts.length > 1 && <p>Choose an ad account:</p>}
         {accounts}
+        <Divider/>
       </div>
     );
   }
